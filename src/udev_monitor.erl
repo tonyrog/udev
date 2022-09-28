@@ -8,6 +8,7 @@
 -module(udev_monitor).
 -export([start/0]).
 -export([start/1]).
+-export([get_device_info/1]).
 
 %% subsystem   devtype
 %% "acpi"
@@ -74,10 +75,6 @@ select(Udev, Mon, Ref) ->
 	    select(Udev, Mon, Ref)
     end.
 
-%%
-get_dev_attr(Dev, "net") ->
-    [{address,udev:device_get_sysattr_value(Dev, "address")}].
-
 get_device_info(Dev) ->
     [
      {devpath,udev:device_get_devpath(Dev)},
@@ -95,8 +92,16 @@ get_device_info(Dev) ->
      {devlinks, udev:device_get_devlinks(Dev)},
      {tags, udev:device_get_tags(Dev)},
      {properties, udev:device_get_properties(Dev)},
-     {sysattrs, udev:device_get_sysattrs(Dev)}
+     {sysattrs, get_sysattrs(Dev)}
     ].
+
+get_sysattrs(Dev) ->
+    Attrs = udev:device_get_sysattrs(Dev),
+    lists:map(
+      fun(Attr) ->
+	      {Attr, udev:device_get_sysattr_value(Dev, Attr)}
+      end, Attrs).
+
 
      
      

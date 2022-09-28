@@ -97,7 +97,7 @@ monitor_filter_add_match_subsystem_devtype(_Mon, _SubSystem, _SysName) ->
 monitor_filter_add_match_tag(_Mon, _Tag) ->
     ?nif_stub().    
 
-%% NOTE! muse set filters tag/subsys above before switch to receiving mode    
+%% NOTE! must set filters tag/subsys above before switch to receiving mode    
 -spec monitor_enable_receiving(Mon::udev_monitor()) -> ok.
 monitor_enable_receiving(_Mon) ->
     ?nif_stub().
@@ -111,7 +111,6 @@ monitor_filter_update(_Mon) ->
 -spec monitor_filter_remove(Mon::udev_monitor()) -> ok.
 monitor_filter_remove(_Mon) ->
     ?nif_stub().    
-
 
 -spec select(Mon::udev_monitor()) -> ok.
 select(_Mon) ->

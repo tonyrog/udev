@@ -64,7 +64,7 @@ typedef struct _udevobj_t
 	struct udev_enumerate* enumerate;
 	struct udev_queue* queue;
 	struct udev_hwdb* hwdb;
-	void* ptr;       
+	void* ptr;
     };
 } udevobj_t;
 
@@ -539,6 +539,7 @@ static ERL_NIF_TERM device_get_string(
 	return ATOM(undefined);
     return enif_make_string(env, str, ERL_NIF_LATIN1); 
 }
+
 
 static ERL_NIF_TERM get_udev_list(ErlNifEnv* env,
 				  struct udev_list_entry *ent,
@@ -1184,7 +1185,7 @@ static ERL_NIF_TERM nif_enumerate_get_devices(
     if (!get_object(env, argv[0], UDEVOBJ_TYPE_ENUMERATE, (void**)&uenum))
 	return enif_make_badarg(env);
     if (udev_enumerate_scan_devices(uenum->enumerate) < 0)
-	return enif_make_badarg(env);	
+	return enif_make_badarg(env);
     ent = udev_enumerate_get_list_entry(uenum->enumerate);
     return get_udev_list(env, ent, 0);
 }
