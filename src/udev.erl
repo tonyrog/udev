@@ -64,6 +64,10 @@
 -export([enumerate_get_devices/1]).
 -export([enumerate_get_subsystems/1]).
 
+%% util
+-export([get_device_info/1, get_sysattrs/1]).
+
+
 -type udev() :: {udev, integer(), reference()}.
 -type udev_monitor() :: {monitor, integer(), reference()}.
 -type udev_device() :: {device, integer(), reference()}.
@@ -297,3 +301,31 @@ enumerate_get_devices(_Enum) ->
 	  [string()].
 enumerate_get_subsystems(_Enum) ->
     ?nif_stub().
+
+%% utils
+get_device_info(Dev) ->
+    [
+     {devpath,device_get_devpath(Dev)},
+     {subsystem,device_get_subsystem(Dev)},
+     {devtype,device_get_devtype(Dev)},
+     {syspath,device_get_syspath(Dev)},
+     {sysname,device_get_sysname(Dev)},
+     {sysnum,device_get_sysnum(Dev)},
+     {devnode,device_get_devnode(Dev)},
+     {is_initialized,device_get_is_initialized(Dev)},
+     {driver,device_get_driver(Dev)},
+     {devnum,device_get_devnum(Dev)},
+     {seqnum,device_get_seqnum(Dev)},
+     {usec_since_initialized,device_get_usec_since_initialized(Dev)},
+     {devlinks, device_get_devlinks(Dev)},
+     {tags, device_get_tags(Dev)},
+     {properties, device_get_properties(Dev)},
+     {sysattrs, get_sysattrs(Dev)}
+    ].
+
+get_sysattrs(Dev) ->
+    Attrs = device_get_sysattrs(Dev),
+    lists:map(
+      fun(Attr) ->
+	      {Attr, device_get_sysattr_value(Dev, Attr)}
+      end, Attrs).

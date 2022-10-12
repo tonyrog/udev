@@ -8,7 +8,6 @@
 -module(udev_monitor).
 -export([start/0]).
 -export([start/1]).
--export([get_device_info/1]).
 
 %% subsystem   devtype
 %% "acpi"
@@ -67,42 +66,10 @@ select(Udev, Mon, Ref) ->
 		Dev ->
 		    io:format("action=~s\n",
 			      [udev:device_get_action(Dev)]),
-		    io:format("  ~p\n", [get_device_info(Dev)]),
+		    io:format("  ~p\n", [udev:get_device_info(Dev)]),
 		    loop(Udev, Mon)
 	    end;
 	Other ->
 	    io:format("Got ~p\n", [Other]),
 	    select(Udev, Mon, Ref)
     end.
-
-get_device_info(Dev) ->
-    [
-     {devpath,udev:device_get_devpath(Dev)},
-     {subsystem,udev:device_get_subsystem(Dev)},
-     {devtype,udev:device_get_devtype(Dev)},
-     {syspath,udev:device_get_syspath(Dev)},
-     {sysname,udev:device_get_sysname(Dev)},
-     {sysnum,udev:device_get_sysnum(Dev)},
-     {devnode,udev:device_get_devnode(Dev)},
-     {is_initialized,udev:device_get_is_initialized(Dev)},
-     {driver,udev:device_get_driver(Dev)},
-     {devnum,udev:device_get_devnum(Dev)},
-     {seqnum,udev:device_get_seqnum(Dev)},
-     {usec_since_initialized,udev:device_get_usec_since_initialized(Dev)},
-     {devlinks, udev:device_get_devlinks(Dev)},
-     {tags, udev:device_get_tags(Dev)},
-     {properties, udev:device_get_properties(Dev)},
-     {sysattrs, get_sysattrs(Dev)}
-    ].
-
-get_sysattrs(Dev) ->
-    Attrs = udev:device_get_sysattrs(Dev),
-    lists:map(
-      fun(Attr) ->
-	      {Attr, udev:device_get_sysattr_value(Dev, Attr)}
-      end, Attrs).
-
-
-     
-     
-
