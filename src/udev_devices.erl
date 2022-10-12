@@ -61,7 +61,8 @@ fold(Opts, Fun, Acc) ->  %% proplist
 fold_match(Opts, Udev, Enum, Fun, Acc) ->
     lists:foldl(fun(Path,Acc0) ->
 			case udev:device_new_from_syspath(Udev, Path) of
-			    false -> Acc0;
+			    false -> 
+				Acc0;
 			    Dev ->
 				case match_name(Dev, Opts) of
 				    true ->
@@ -79,21 +80,28 @@ match_name(Dev, Opts) ->
     Prop = udev:device_get_properties(Dev),
     DevNode = udev:device_get_devnode(Dev),
     NAME = proplists:get_value("NAME",Prop,undefined),
-    %% io:format("NAME=~p, DevNode=~p\n", [NAME, DevNode]),
     if is_list(DevNode), NAME =:= undefined ->
-	    Parent = udev:device_get_parent(Dev),
-	    PProp = udev:device_get_properties(Parent),
-	    PNAME = stripq(proplists:get_value("NAME",PProp,undefined)),
-	    lists:any(
-	      fun(N) ->
+	    case udev:device_get_parent(Dev) of
+		false -> false;
+		Parent ->
+		    PProp = udev:device_get_properties(Parent),
+		    PNAME = stripq(proplists:get_value("NAME",PProp,undefined)),
+		    Names = proplists:get_all_values(name, Opts),
+		    match_names(PNAME, Names)
+	    end;
+       true ->
+	    false
+    end.
+
+match_names(_PNAME, []) -> true;  %% match all if no names given
+match_names(undefined, _Names) -> false;
+match_names(PNAME, Names) ->
+    lists:any(fun(N) -> 
 		      case re:run(PNAME, N) of
 			  {match,_} -> true;
 			  _ -> false
 		      end
-	      end, proplists:get_all_values(name, Opts));
-       true ->
-	    false
-    end.
+	      end, Names).
 
 %% strip double quotes
 stripq(Atom) when is_atom(Atom) -> Atom;
