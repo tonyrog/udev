@@ -33,18 +33,25 @@ start(Opts, Callback) ->
     ok = udev:monitor_enable_receiving(Mon),
 
     %% now when we are receiveing, go through existing devices
-    Sj = udev_devices:fold(
-	   Udev, Opts, 
-	   fun(Dev, Si) ->
-		   Info = udev:get_device_info(Dev),
-		   case match_dev(Dev, Info, Opts) of
-		       true ->
-			   Callback("add", Info, Dev, Si);
-		       false ->
-			   Si
-		   end
-	   end,  #{ opts=>Opts }),
-    loop(Udev, Mon, Callback,Sj).
+    SSj = udev_devices:fold(
+	    Udev, Opts, 
+	    fun (_Dev, SS={stop,_Si}) -> SS;
+		(Dev, Si) ->
+		    Info = udev:get_device_info(Dev),
+		    case match_dev(Dev, Info, Opts) of
+			true ->
+			    case Callback("add", Info, Dev, Si) of
+				{stop, Sj} -> {stop,Sj};
+				Sj -> Sj
+			    end;
+			false ->
+			    Si
+		    end
+	    end,  #{ opts=>Opts }),
+    case SSj of
+	{stop, Sj} -> Sj;
+	Sj -> loop(Udev, Mon, Callback,Sj)
+    end.
 
 loop(Udev, Mon, Callback, State) ->
     Ref = erlang:make_ref(),
@@ -66,17 +73,24 @@ select(Udev, Mon, Ref, Callback, State) ->
 		    Info = udev:get_device_info(Dev),
 		    io:format("action=~s, info=~p\n", [Action,Info]),
 		    Opts = maps:get(opts,State,[]),
-		    State1 = case match_dev(Dev, Info, Opts) of
-				 true ->
-				     Callback(Action, Info, Dev, State);
-				 false ->
-				     State
-			     end,
-		    ?MODULE:loop(Udev, Mon, Callback, State1)
+		    case match_dev(Dev, Info, Opts) of
+			true ->
+			    case Callback(Action, Info, Dev, State) of
+				{stop, State1} -> State1;
+				State1 ->
+				    ?MODULE:loop(Udev, Mon, Callback, State1)
+			    end;
+			false ->
+			    ?MODULE:loop(Udev, Mon, Callback, State)
+		    end
 	    end;
 	Event ->
-	    State1 = Callback("event", [], Event, State),
-	    ?MODULE:select(Udev, Mon, Ref, Callback, State1)
+	    case Callback("event", [], Event, State) of
+		{stop, State1} ->
+		    State1;
+		State1 ->
+		    ?MODULE:select(Udev, Mon, Ref, Callback, State1)
+	    end
     end.
 
 %% Match device parent names if this is a devnode
@@ -86,6 +100,7 @@ match_dev(Dev, Info, Opts) ->
     Props = proplists:get_all_values(property, Opts),
     match_name(Dev, Info, Names) andalso match_property(Dev, Info, Props).
 
+match_property(_Dev, _Info, []) -> true;
 match_property(_Dev, Info, MatchProps) ->
     Prop = proplists:get_value(properties, Info, []),
     io:format("match properties Prop=~p, Match=~p\n", [Prop, MatchProps]),
