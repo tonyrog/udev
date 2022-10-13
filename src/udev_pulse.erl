@@ -95,8 +95,3 @@ dump_devices(I, [D|Ds]) ->
     dump_devices(I+1, Ds);
 dump_devices(_, []) ->
     ok.
-
-
-
-    
-    

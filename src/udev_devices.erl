@@ -9,7 +9,7 @@
 
 -export([i/0, i/1]).
 -export([list/0, list/1]).
--export([fold/3]).
+-export([fold/3, fold/4]).
 
 -export([test/0]).
 
@@ -38,6 +38,9 @@ list(Opts) ->
 
 fold(Opts, Fun, Acc) ->  %% proplist
     Udev = udev:new(),
+    fold(Udev, Opts, Fun, Acc).
+
+fold(Udev, Opts, Fun, Acc) ->
     Enum = udev:enumerate_new(Udev),
     case proplists:get_value(subsystem, Opts, undefined) of
 	undefined -> ok;
