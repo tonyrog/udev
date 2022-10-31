@@ -119,14 +119,14 @@ match_name(Dev, Info, Names) ->
     Prop = proplists:get_value(properties, Info, []),
     DevNode = proplists:get_value(devnode, Info, ""),
     NAME = proplists:get_value("NAME",Prop,undefined),
-    io:format("match names NAME=~p, Names=~p\n", [NAME, Names]),
+    %% io:format("match names NAME=~p, Names=~p\n", [NAME, Names]),
     if is_list(DevNode), NAME =:= undefined ->
 	    case udev:device_get_parent(Dev) of
 		false -> false;
 		Parent ->
 		    PProp = udev:device_get_properties(Parent),
 		    PNAME = stripq(proplists:get_value("NAME",PProp,undefined)),
-		    io:format("match names PNAME=~p\n", [PNAME]),
+		    %% io:format("match names PNAME=~p\n", [PNAME]),
 		    match_names(PNAME, Names)
 	    end;
        true ->
